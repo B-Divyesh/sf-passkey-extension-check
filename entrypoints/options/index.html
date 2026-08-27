@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f4ebdd" />
+    <title>Passkey Extension Check</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to readiness check</a>
+    <header class="topbar">
+      <a class="brand" href="#main" aria-label="Passkey Extension Check home">
+        <img src="/icon-32.png" width="32" height="32" alt="" />
+        <span>Passkey Extension Check</span>
+      </a>
+      <span class="local-note"><span aria-hidden="true">●</span> Runs locally</span>
+    </header>
+    <main id="main">
+      <section class="intro" aria-labelledby="page-title">
+        <div>
+          <p class="eyebrow">Preflight before a critical sign-in</p>
+          <h1 id="page-title">See which passkey providers may overlap.</h1>
+          <p class="lede">Check extension coexistence, browser capability, and your way back in—without reading a password, passkey, page, or form.</p>
+          <button class="primary" id="run-check" type="button">
+            <span>Run readiness check</span><span aria-hidden="true">→</span>
+          </button>
+          <p class="permission-note">You’ll be asked for optional access to extension names and enabled state. The scan stays on this device.</p>
+        </div>
+        <div class="mini-scene" aria-hidden="true">
+          <div class="paper-window window-back"></div>
+          <div class="paper-window window-front"><span class="provider-card one"></span><span class="provider-card two"></span></div>
+          <span class="paper-key"></span>
+        </div>
+      </section>
+
+      <div class="offline" id="offline" role="status" hidden><strong>You’re offline.</strong> The check still works; nothing needs the network.</div>
+
+      <section class="workspace" id="workspace" hidden aria-labelledby="workspace-title">
+        <div class="scan-heading">
+          <div>
+            <p class="eyebrow">Local inspection sheet</p>
+            <h2 id="workspace-title">Your browser profile</h2>
+          </div>
+          <button class="secondary" id="rerun" type="button">Rerun scan</button>
+        </div>
+
+        <div class="loading-sheet" id="loading" role="status" aria-live="polite" hidden>
+          <span class="stamp" aria-hidden="true">✓</span>
+          <div><strong>Checking this browser…</strong><br /><span>Looking only at capability and extension metadata.</span></div>
+        </div>
+
+        <div id="audit-content" hidden>
+          <section class="inventory-section" aria-labelledby="providers-title">
+            <div class="section-copy">
+              <p class="step">01 / Providers</p>
+              <h3 id="providers-title">Confirm every enabled provider</h3>
+              <p id="inventory-explanation">Detected matches are selected. Add anything the browser could not reveal.</p>
+            </div>
+            <fieldset class="provider-list" id="provider-list">
+              <legend class="sr-only">Password and passkey providers in this browser</legend>
+            </fieldset>
+          </section>
+
+          <section class="inventory-section" aria-labelledby="recovery-title">
+            <div class="section-copy">
+              <p class="step">02 / Recovery</p>
+              <h3 id="recovery-title">Mark a route you can use today</h3>
+              <p>Only check routes you have actually verified. These notes stay in extension storage.</p>
+            </div>
+            <fieldset class="provider-list" id="recovery-list">
+              <legend class="sr-only">Verified recovery routes</legend>
+              <label><input type="checkbox" name="recovery" value="alternateDevice" /><span><strong>Another signed-in device</strong><small>A phone, tablet, or computer you can access</small></span></label>
+              <label><input type="checkbox" name="recovery" value="recoveryCode" /><span><strong>Recovery code</strong><small>Stored outside this browser profile</small></span></label>
+              <label><input type="checkbox" name="recovery" value="passwordFallback" /><span><strong>Password fallback</strong><small>Still accepted and recently tested</small></span></label>
+              <label><input type="checkbox" name="recovery" value="securityKey" /><span><strong>Roaming security key</strong><small>Registered and physically available</small></span></label>
+            </fieldset>
+          </section>
+
+          <section class="result-sheet" aria-labelledby="result-title">
+            <div class="result-banner" id="result-banner">
+              <span class="result-mark" id="result-mark" aria-hidden="true"></span>
+              <div><p class="eyebrow">Readiness result</p><h2 id="result-title">Your result</h2><p id="result-summary"></p></div>
+            </div>
+            <ol class="findings" id="findings"></ol>
+          </section>
+
+          <section class="checklist" aria-labelledby="checklist-title">
+            <div><p class="step">03 / Before you rely on a passkey</p><h2 id="checklist-title">Recovery-first checklist</h2></div>
+            <ol id="checklist-items"></ol>
+          </section>
+
+          <div class="actions">
+            <button class="primary" id="export" type="button">Export local report</button>
+            <button class="text-button" id="reset" type="button">Clear saved check</button>
+          </div>
+
+          <details class="limits">
+            <summary>What this check can—and cannot—know</summary>
+            <p>Documented browser APIs can report WebAuthn capability and, with your permission, extension names and enabled state. They cannot prove a passkey will work on a particular site. Browser and operating-system credential providers may not be enumerable. This tool never creates a credential or starts a real authentication ceremony.</p>
+          </details>
+        </div>
+        <p class="live-region" id="live-region" aria-live="polite"></p>
+      </section>
+    </main>
+    <footer><span>Private by construction. No account, analytics, or network requests.</span><a href="https://passkey-extension-check.sociobot.in/privacy" target="_blank" rel="noreferrer">Privacy</a></footer>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

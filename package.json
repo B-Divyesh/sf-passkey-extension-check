@@ -1,0 +1,28 @@
+{
+  "name": "passkey-extension-check",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wxt",
+    "dev:site": "vite site",
+    "test": "vitest run",
+    "test:a11y": "node scripts/verify-ui.mjs",
+    "build:extension": "wxt build",
+    "build:web": "vite build --config site/vite.config.ts",
+    "build:site": "npm run build:extension && npm run build:web && npm run package:extension",
+    "package:extension": "node scripts/package-extension.mjs",
+    "build": "npm run build:site",
+    "check": "tsc --noEmit && npm test && npm run build && npm run test:a11y"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.62.1",
+    "lighthouse": "^13.4.1",
+    "sharp": "^0.35.4",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.3",
+    "vitest": "^3.2.4",
+    "wxt": "^0.21.4"
+  }
+}
