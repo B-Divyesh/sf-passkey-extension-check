@@ -1,0 +1,9 @@
+{
+  "slug": "passkey-extension-check",
+  "title": "Passkey Extension Check",
+  "artifact_class": "browser-extension",
+  "user": "An employee or privacy-conscious multi-browser user who needs to discover whether installed password-manager extensions can conflict before a passkey is their only login route.",
+  "smallest_useful_product": "A browser extension that inventories password/passkey provider extensions and browser settings, runs a non-secret WebAuthn capability check, and generates a remediation/recovery checklist.",
+  "constraints": "Never read passwords, passkeys, or page form values; use only documented extension/browser APIs; avoid security guarantees and disclose browser-specific limitations.",
+  "monetization": "free"
+}
