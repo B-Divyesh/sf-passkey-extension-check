@@ -32,9 +32,9 @@ Verification completed on 2026-08-27:
 
 - `npm test`: 10 tests passed across provider matching, conflict rules, managed-policy handling, export, and static-page contracts.
 - `npx tsc --noEmit`: passed with strict TypeScript.
-- `npm run build`: passed; extension total 35.01 KB, main extension JS 11.45 KB, site initial JS 0.71 KB, CSS 8.3 KB, largest hero 72 KB.
+- `npm run build`: passed; extension total 35.11 KB, main extension JS 11.55 KB, site initial JS 0.71 KB, CSS 8.3 KB, largest hero 72 KB.
 - `xvfb-run -a env EXTENSION_HEADED=1 npm run test:a11y`: no serious/critical axe findings on landing, privacy, terms, initial extension, or populated result views; no page console errors; no horizontal overflow at 390 px. Manual permission-denial, two-provider conflict, report download, and clear-data paths passed.
-- Lighthouse mobile against the production site build: Performance 96, Accessibility 100, Best Practices 100, SEO 100; FCP 2.2 s, LCP 2.4 s, CLS 0, total blocking time 0 ms.
+- Lighthouse mobile against the production site build: Performance 100, Accessibility 100, Best Practices 100, SEO 100; FCP 1.1 s, LCP 1.2 s, CLS 0, total blocking time 0 ms.
 - `npm audit` and `npm audit --omit=dev`: 0 known vulnerabilities after upgrading WXT to 0.21.4.
 - Desktop and 390 px screenshots were visually reviewed; the generated illustration was checked for text artifacts, brands, misleading UI, and other prompt violations.
 
