@@ -1,0 +1,102 @@
+import { spawn } from 'node:child_process';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
+import AxeBuilder from '@axe-core/playwright';
+import { chromium } from '@playwright/test';
+
+const root = resolve(import.meta.dirname, '..');
+const server = spawn(process.execPath, ['node_modules/vite/bin/vite.js', 'preview', '--config', 'site/vite.config.ts', '--host', '127.0.0.1', '--port', '4173'], { cwd: root, stdio: 'pipe' });
+const sleep = (milliseconds) => new Promise((resolvePromise) => setTimeout(resolvePromise, milliseconds));
+
+async function waitForServer() {
+  for (let attempt = 0; attempt < 30; attempt += 1) {
+    try {
+      if ((await fetch('http://127.0.0.1:4173/')).ok) return;
+    } catch {}
+    await sleep(200);
+  }
+  throw new Error('Preview server did not start');
+}
+
+const browser = await chromium.launch({ headless: true });
+try {
+  await waitForServer();
+  for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 1000 }]) {
+    const pageContext = await browser.newContext({ viewport });
+    const page = await pageContext.newPage();
+    const errors = [];
+    page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
+    page.on('pageerror', (error) => errors.push(error.message));
+    await page.goto('http://127.0.0.1:4173/', { waitUntil: 'networkidle' });
+    const axe = await new AxeBuilder({ page }).analyze();
+    const serious = axe.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact ?? ''));
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
+    if (serious.length || errors.length || overflow) throw new Error(JSON.stringify({ viewport, serious, errors, overflow }, null, 2));
+    await pageContext.close();
+  }
+  for (const path of ['/privacy/', '/terms/']) {
+    const pageContext = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    const page = await pageContext.newPage();
+    await page.goto(`http://127.0.0.1:4173${path}`, { waitUntil: 'networkidle' });
+    const axe = await new AxeBuilder({ page }).analyze();
+    const serious = axe.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact ?? ''));
+    if (serious.length) throw new Error(`${path}: ${JSON.stringify(serious, null, 2)}`);
+    await pageContext.close();
+  }
+  console.log('Site: no serious/critical axe violations, console errors, or 390px overflow.');
+
+  const profile = await mkdtemp(join(tmpdir(), 'passkey-check-'));
+  const context = await chromium.launchPersistentContext(profile, {
+    headless: process.env.EXTENSION_HEADED !== '1',
+    args: [`--disable-extensions-except=${resolve(root, '.output/chrome-mv3')}`, `--load-extension=${resolve(root, '.output/chrome-mv3')}`],
+  });
+  try {
+    let worker = context.serviceWorkers()[0];
+    try {
+      worker ??= await context.waitForEvent('serviceworker', { timeout: 5000 });
+    } catch (error) {
+      if (process.env.EXTENSION_HEADED !== '1') {
+        console.log('Extension axe check skipped: Chromium headless does not load MV3 extensions. Rerun with EXTENSION_HEADED=1 under a display server.');
+        worker = undefined;
+      } else throw error;
+    }
+    if (worker) {
+      const extensionId = new URL(worker.url()).host;
+      const page = await context.newPage();
+      await page.addInitScript(() => {
+        chrome.permissions.contains = async () => false;
+        chrome.permissions.request = async () => false;
+      });
+      await page.setViewportSize({ width: 390, height: 844 });
+      await page.goto(`chrome-extension://${extensionId}/options.html`);
+      let axe = await new AxeBuilder({ page }).analyze();
+      let serious = axe.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact ?? ''));
+      if (serious.length) throw new Error(`Extension initial: ${JSON.stringify(serious, null, 2)}`);
+      await page.getByRole('button', { name: 'Run readiness check' }).click();
+      await page.locator('#audit-content:not([hidden])').waitFor();
+      await page.locator('input[value="1password"]').check();
+      await page.locator('input[value="bitwarden"]').check();
+      await page.locator('input[value="alternateDevice"]').check();
+      if ((await page.locator('#result-title').textContent()) !== 'Provider overlap found') throw new Error('Conflict flow did not produce the expected result');
+      if (await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)) throw new Error('Extension results overflow at 390px');
+      axe = await new AxeBuilder({ page }).analyze();
+      serious = axe.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact ?? ''));
+      if (serious.length) throw new Error(`Extension results: ${JSON.stringify(serious, null, 2)}`);
+      const downloadPromise = page.waitForEvent('download');
+      await page.getByRole('button', { name: 'Export local report' }).click();
+      const download = await downloadPromise;
+      if (!download.suggestedFilename().endsWith('.txt')) throw new Error('Report export did not create a text file');
+      page.once('dialog', (dialog) => dialog.accept());
+      await page.getByRole('button', { name: 'Clear saved check' }).click();
+      if (await page.locator('#workspace').isVisible()) throw new Error('Clear action did not reset the workspace');
+      console.log('Extension: initial/results axe clean; manual conflict, export, and clear flows pass.');
+    }
+  } finally {
+    await context.close();
+    await rm(profile, { recursive: true, force: true });
+  }
+} finally {
+  await browser.close();
+  server.kill('SIGTERM');
+}
