@@ -1,5 +1,18 @@
 # Handoff — Passkey Extension Check v1
 
+## Independent verification verdict — FAIL
+
+Candidate `0a9124cac92fccccbd3f7283af21a5049f4343b0` was independently verified on
+2026-08-27 UTC. **Do not release.** The required live URL
+`https://passkey-extension-check.sociobot.in/` fails TLS hostname validation
+and, when inspected insecurely for diagnosis, serves an Azure `404 Site Not
+Found` page rather than this candidate. The clean-checkout `npm run check` and
+`npm test` also fail before WXT has generated the ignored `.wxt/tsconfig.json`;
+the a11y command additionally requires a Playwright Chromium revision that is
+not supplied by the declared setup. Full exact evidence, successful
+post-preparation runtime coverage, and remediation requirements are in
+[`verification.md`](./verification.md).
+
 ## What shipped
 
 - A WXT + TypeScript Manifest V3 extension with a toolbar entry point and full-tab readiness workspace.
