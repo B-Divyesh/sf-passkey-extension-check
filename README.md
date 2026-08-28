@@ -11,10 +11,13 @@ Live site: <https://passkey-extension-check.sociobot.in>
 Requirements: Node.js 22+ and npm.
 
 ```sh
-npm install
+npm ci
 npm run dev       # WXT development extension
 npm run dev:site  # landing site
 ```
+
+`npm ci` runs WXT's local type preparation automatically. No generated `.wxt/`
+files are committed.
 
 To test an unpacked development build:
 
@@ -28,6 +31,15 @@ To test an unpacked development build:
 npm test          # rule-engine and HTML contract tests
 npm run check     # typecheck, tests, extension + site build
 npm run build     # reproducible release output in dist/
+npm run test:a11y # browser accessibility/runtime smoke test
+```
+
+The browser smoke test is pinned to Playwright 1.58.2, which uses Chromium
+1208 supplied by the factory image. Run the extension portion with a display
+server when validating MV3 pages:
+
+```sh
+xvfb-run -a env EXTENSION_HEADED=1 npm run test:a11y
 ```
 
 Release output:
@@ -37,6 +49,10 @@ Release output:
 - `dist/site/downloads/passkey-extension-check-chrome.zip` — packaged extension linked by the site.
 
 `npm run build:site` and `npm run build` both produce the complete static deployment, including the packaged download.
+The site output also includes `staticwebapp.config.json` for Azure Static Web
+Apps: a same-origin CSP, explicit permissions/frame policy, short HTML and
+service-worker revalidation, and immutable caching for versioned script and
+hero-image assets.
 
 ## How detection works
 

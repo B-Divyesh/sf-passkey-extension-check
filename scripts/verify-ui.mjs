@@ -29,6 +29,10 @@ try {
     page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
     page.on('pageerror', (error) => errors.push(error.message));
     await page.goto('http://127.0.0.1:4173/', { waitUntil: 'networkidle' });
+    await page.keyboard.press('Tab');
+    if (!(await page.locator('.skip-link').evaluate((element) => document.activeElement === element))) throw new Error('Skip link is not first in keyboard order');
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() => location.hash === '#main');
     const axe = await new AxeBuilder({ page }).analyze();
     const serious = axe.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact ?? ''));
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
@@ -64,6 +68,9 @@ try {
     if (worker) {
       const extensionId = new URL(worker.url()).host;
       const page = await context.newPage();
+      const errors = [];
+      page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
+      page.on('pageerror', (error) => errors.push(error.message));
       await page.addInitScript(() => {
         chrome.permissions.contains = async () => false;
         chrome.permissions.request = async () => false;
@@ -73,11 +80,15 @@ try {
       let axe = await new AxeBuilder({ page }).analyze();
       let serious = axe.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact ?? ''));
       if (serious.length) throw new Error(`Extension initial: ${JSON.stringify(serious, null, 2)}`);
-      await page.getByRole('button', { name: 'Run readiness check' }).click();
+      await page.getByRole('button', { name: 'Run readiness check' }).focus();
+      await page.keyboard.press('Enter');
       await page.locator('#audit-content:not([hidden])').waitFor();
-      await page.locator('input[value="1password"]').check();
-      await page.locator('input[value="bitwarden"]').check();
-      await page.locator('input[value="alternateDevice"]').check();
+      await page.locator('input[value="1password"]').focus();
+      await page.keyboard.press('Space');
+      await page.locator('input[value="bitwarden"]').focus();
+      await page.keyboard.press('Space');
+      await page.locator('input[value="alternateDevice"]').focus();
+      await page.keyboard.press('Space');
       if ((await page.locator('#result-title').textContent()) !== 'Provider overlap found') throw new Error('Conflict flow did not produce the expected result');
       if (await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)) throw new Error('Extension results overflow at 390px');
       axe = await new AxeBuilder({ page }).analyze();
@@ -90,6 +101,7 @@ try {
       page.once('dialog', (dialog) => dialog.accept());
       await page.getByRole('button', { name: 'Clear saved check' }).click();
       if (await page.locator('#workspace').isVisible()) throw new Error('Clear action did not reset the workspace');
+      if (errors.length) throw new Error(`Extension console errors: ${JSON.stringify(errors)}`);
       console.log('Extension: initial/results axe clean; manual conflict, export, and clear flows pass.');
     }
   } finally {

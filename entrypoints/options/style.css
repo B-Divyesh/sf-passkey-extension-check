@@ -78,6 +78,7 @@ h3 { font-size: 1.45rem; }
 .provider-list label { display: flex; min-height: 68px; align-items: center; gap: 12px; padding: 10px 12px; border: 2px solid color-mix(in srgb, var(--ink) 28%, transparent); border-radius: 8px 14px 10px 10px; cursor: pointer; }
 .provider-list label:hover { background: color-mix(in srgb, var(--sage) 52%, transparent); }
 .provider-list label:has(input:checked) { border-color: var(--teal); background: var(--sage); }
+.provider-list label:has(input:checked) small { color: #3d4d49; }
 .provider-list input { width: 22px; height: 22px; flex: 0 0 auto; accent-color: var(--teal); }
 .provider-list span { display: flex; flex-direction: column; }
 .provider-list small { color: var(--muted); line-height: 1.35; }
@@ -135,5 +136,6 @@ footer { min-height: 96px; border-top: 1px solid color-mix(in srgb, var(--ink) 1
   .result-banner[data-status="conflict"] { background: #582d28; }
   .result-banner[data-status="prepared"] { background: var(--sage); }
   .result-banner p:last-child { color: var(--ink); }
+  .provider-list label:has(input:checked) small { color: var(--muted); }
   .finding.caution > span { color: var(--saffron); }
 }

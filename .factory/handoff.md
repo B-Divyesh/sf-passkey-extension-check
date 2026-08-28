@@ -1,68 +1,85 @@
-# Handoff — Passkey Extension Check v1
+# Handoff — Passkey Extension Check repair
 
-## Independent verification verdict — FAIL
+## Release-blocker repair
 
-Fresh verification on 2026-08-28 UTC confirms candidate
-`0a9124cac92fccccbd3f7283af21a5049f4343b0` is now correctly deployed at
-`https://passkey-extension-check.sociobot.in/`: strict TLS works and all live
-static files/unpacked extension contents match the candidate build. **Do not
-release yet:** from a clean `npm ci`, both `npm test` and the required
-`npm run check` fail because `tsconfig.json` extends the not-yet-generated,
-ignored `.wxt/tsconfig.json`. The build, tests, accessibility, manual
-diagnostic flows, privacy checks, performance, and live deployment passed once
-that WXT prerequisite and Chromium were supplied. Exact commands, evidence,
-and P1/P2 remediation are in [`verification-2.md`](./verification-2.md).
+This repair supersedes the failed verification handoff for candidate
+`0a9124cac92fccccbd3f7283af21a5049f4343b0`.
 
-## What shipped
+- **Clean checkout P1 fixed:** `npm ci` now runs `wxt prepare`, while
+  `pretest` and `precheck` repeat that preparation defensively. The new
+  `npm run test:clean-gate` removes `.wxt/` and proves that `npm test` and
+  direct `tsc --noEmit` recover without a generated config already present.
+- **Browser provision P1 fixed:** Playwright is pinned to `1.58.2`, matching
+  the factory Chromium 1208 cache. No ambient browser download is required.
+- **Accessibility regression fixed:** selected manual checklist helper text
+  now meets AA contrast in the light treatment; the headed MV3 test exercises
+  the affected selected state through the keyboard.
+- **Static response policy added:** the deployable Azure Static Web Apps
+  artifact includes a same-origin CSP, explicit permissions/frame policy,
+  no-sniff/referrer directives, short HTML/service-worker revalidation, and
+  immutable caching for versioned script and hero-image requests.
 
-- A WXT + TypeScript Manifest V3 extension with a toolbar entry point and full-tab readiness workspace.
-- Optional `management` permission for local extension inventory. The raw inventory is discarded after matching known providers; permission denial falls back to explicit manual selection.
-- Provider matching for 1Password, Bitwarden, Dashlane, Keeper, LastPass, NordPass, and Proton Pass, including enabled/disabled and organization-managed state.
-- Non-secret WebAuthn checks for secure context, platform authenticator availability, conditional mediation, and client-capabilities API support.
-- Deterministic conflict/readiness rules with explainable findings, organization-safe remediation, recovery-route confirmation, browser-local persistence, reset, and plain-text export.
-- First-class loading, permission-denied/manual, offline, unknown-capability, conflict, prepared, and empty-provider states.
-- A responsive static landing site with install instructions, packaged extension download, privacy policy, terms, offline shell caching, robots.txt, and sitemap.
-- A product-specific paper-cut diorama visual system in `.factory/design.md`, an original generated hero source plus prompt provenance, and 72 KB / 20 KB responsive WebP derivatives.
+The existing brief, local-first permission model, manual recovery workflow,
+and paper-cut visual thesis are unchanged.
 
-## Build and verification
+## Verification evidence
 
-The following reproduces the buildable product behavior, but is **not** a
-clean-checkout release gate because WXT must first generate `.wxt/tsconfig.json`:
+Run from a clean Node 22.23.2/npm 10.9.8 checkout:
 
 ```sh
 npm ci
-npm run build
 npx tsc --noEmit
 npm test
+npm run test:clean-gate
+npm run check
 xvfb-run -a env EXTENSION_HEADED=1 npm run test:a11y
+unzip -t dist/site/downloads/passkey-extension-check-chrome.zip
+npm audit --omit=dev
 ```
 
-`npm run build` (and `npm run build:site`) creates:
+Results on 2026-08-28 UTC:
 
-- `dist/site/index.html`
-- `dist/site/privacy/index.html`
-- `dist/site/terms/index.html`
-- `dist/site/downloads/passkey-extension-check-chrome.zip`
-- `dist/extension/` (unpacked MV3 build)
+- `npm ci` installed 285 packages, executed WXT preparation, and reported
+  zero vulnerabilities.
+- `npx tsc --noEmit`, `npm test`, and the clean-state regression gate passed.
+  Vitest: 3 files, 13 tests (provider/domain rules, static contracts, and new
+  release-tooling contracts).
+- `npm run check` passed: clean-state test/type gate, WXT MV3 production
+  build, site build, ZIP packaging, and desktop/390px browser smoke test.
+- `xvfb-run -a env EXTENSION_HEADED=1 npm run test:a11y` passed. Axe found no
+  serious/critical issues on the landing/privacy/terms pages and initial and
+  populated extension pages. It also verified no console errors, no 390px
+  overflow, the landing-page keyboard skip link, keyboard Enter activation of
+  the extension’s primary action, Space activation of checklist rows, conflict
+  result, local text export, and confirmed reset.
+- Built output: extension 35.24 KB total / 11.55 KB primary JS; site entry JS
+  711 B; CSS 8,492 B; hero 72,872 B. All remain within the stated budgets.
+- ZIP integrity passed. The unpacked and packaged manifest is MV3 with only
+  required `storage` and optional `management`; no host permissions or content
+  scripts. Source review found no extension network, analytics, telemetry, or
+  credential/page access paths. `npm audit --omit=dev` reported zero known
+  vulnerabilities.
 
-Verification was refreshed on 2026-08-28; see `verification-2.md` for the
-authoritative failing clean-checkout result. After the build prerequisite:
+## Build and deploy
 
-- `npm test`: 10 tests passed across provider matching, conflict rules, managed-policy handling, export, and static-page contracts.
-- `npx tsc --noEmit`: passed with strict TypeScript.
-- `npm run build`: passed; extension total 35.11 KB, main extension JS 11.55 KB, site initial JS 0.71 KB, CSS 8.3 KB, largest hero 72 KB.
-- `xvfb-run -a env EXTENSION_HEADED=1 npm run test:a11y`: no serious/critical axe findings on landing, privacy, terms, initial extension, or populated result views; no page console errors; no horizontal overflow at 390 px. Manual permission-denial, two-provider conflict, report download, and clear-data paths passed.
-- Lighthouse mobile against the production site build: Performance 100, Accessibility 100, Best Practices 100, SEO 100; FCP 1.1 s, LCP 1.2 s, CLS 0, total blocking time 0 ms.
-- `npm audit` and `npm audit --omit=dev`: 0 known vulnerabilities after upgrading WXT to 0.21.4.
-- Desktop and 390 px screenshots were visually reviewed; the generated illustration was checked for text artifacts, brands, misleading UI, and other prompt violations.
+`npm run build` produces:
 
-## Privacy and security notes
+- `dist/extension/` — unpacked Chromium MV3 extension
+- `dist/site/` — static deployment root, including `staticwebapp.config.json`
+- `dist/site/downloads/passkey-extension-check-chrome.zip` — consumer download
 
-There are no content scripts, host permissions, remote scripts, analytics, accounts, or backend calls. Only matching provider metadata and the user’s local checklist state are stored. The extension does not create credentials or start authentication. The site’s service worker caches public shell assets only.
+Push `main` to trigger the configured static deployment, then verify
+`https://passkey-extension-check.sociobot.in/` returns the product, strict TLS,
+the configured response policies, and the current download. The factory owns
+DNS and hosting binding; this repository contains the static deployment policy
+and artifact only.
 
-## Known limits / next steps
+## Known limits
 
-- Browsers do not provide a universal API for enumerating OS-level and built-in credential providers. The UI states this limitation and requires manual confirmation when inventory is unavailable.
-- The v1 package is an unsigned Chromium MV3 build intended for `Load unpacked`; Chrome Web Store review/signing and a separately tested Firefox package are future distribution work.
-- A capability response cannot guarantee a particular relying party’s sign-in flow. The report consistently directs users to test on a non-critical account and retain an independent recovery route.
-- The generated hero source is 1536×1024 PNG; the shipped WebP variants are optimized, but AVIF was omitted because WebP is already 20–72 KB and provides broad extension-site compatibility.
+- Browser APIs cannot universally enumerate OS-level or built-in credential
+  providers. The extension discloses that limit and retains its manual path.
+- This is an unsigned Chromium MV3 build for `Load unpacked`; store signing and
+  Firefox packaging are future work.
+- Readiness/capability checks do not guarantee a particular relying-party
+  WebAuthn ceremony. Users should test a non-critical account and keep an
+  independent recovery route.
