@@ -59,6 +59,16 @@ Results on 2026-08-28 UTC:
   scripts. Source review found no extension network, analytics, telemetry, or
   credential/page access paths. `npm audit --omit=dev` reported zero known
   vulnerabilities.
+- Production deployment passed on 2026-08-28 UTC. `dist/site` was published
+  with the configured Azure Static Web Apps CLI to
+  `sf-passkey-extension-check` production. Strict TLS returned HTTP/2 200;
+  both the live `index.html` and extension ZIP SHA-256 values exactly matched
+  the local release artifact. A 390px browser smoke test observed requests
+  only to `https://passkey-extension-check.sociobot.in`; after service-worker
+  activation, an offline reload retained the expected landing-page title.
+- Live response-policy verification passed: HTML has the configured CSP,
+  Permissions-Policy, `X-Frame-Options: DENY`, `nosniff`, referrer policy, and
+  short revalidation; the versioned `/assets/site.js` response is immutable.
 
 ## Build and deploy
 
@@ -68,11 +78,16 @@ Results on 2026-08-28 UTC:
 - `dist/site/` — static deployment root, including `staticwebapp.config.json`
 - `dist/site/downloads/passkey-extension-check-chrome.zip` — consumer download
 
-Push `main` to trigger the configured static deployment, then verify
-`https://passkey-extension-check.sociobot.in/` returns the product, strict TLS,
-the configured response policies, and the current download. The factory owns
-DNS and hosting binding; this repository contains the static deployment policy
-and artifact only.
+Deployment completed from this release artifact with:
+
+```sh
+swa deploy dist/site --env production
+```
+
+The deployment token is retrieved from the existing `sf-passkey-extension-check`
+Static Web App configuration; it is never committed. The factory owns DNS and
+hosting binding; this repository contains the static deployment policy and
+artifact only.
 
 ## Known limits
 
