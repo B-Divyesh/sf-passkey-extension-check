@@ -2,16 +2,16 @@
 
 ## Independent verification verdict — FAIL
 
-Candidate `0a9124cac92fccccbd3f7283af21a5049f4343b0` was independently verified on
-2026-08-27 UTC. **Do not release.** The required live URL
-`https://passkey-extension-check.sociobot.in/` fails TLS hostname validation
-and, when inspected insecurely for diagnosis, serves an Azure `404 Site Not
-Found` page rather than this candidate. The clean-checkout `npm run check` and
-`npm test` also fail before WXT has generated the ignored `.wxt/tsconfig.json`;
-the a11y command additionally requires a Playwright Chromium revision that is
-not supplied by the declared setup. Full exact evidence, successful
-post-preparation runtime coverage, and remediation requirements are in
-[`verification.md`](./verification.md).
+Fresh verification on 2026-08-28 UTC confirms candidate
+`0a9124cac92fccccbd3f7283af21a5049f4343b0` is now correctly deployed at
+`https://passkey-extension-check.sociobot.in/`: strict TLS works and all live
+static files/unpacked extension contents match the candidate build. **Do not
+release yet:** from a clean `npm ci`, both `npm test` and the required
+`npm run check` fail because `tsconfig.json` extends the not-yet-generated,
+ignored `.wxt/tsconfig.json`. The build, tests, accessibility, manual
+diagnostic flows, privacy checks, performance, and live deployment passed once
+that WXT prerequisite and Chromium were supplied. Exact commands, evidence,
+and P1/P2 remediation are in [`verification-2.md`](./verification-2.md).
 
 ## What shipped
 
@@ -26,11 +26,15 @@ post-preparation runtime coverage, and remediation requirements are in
 
 ## Build and verification
 
-From a clean clone:
+The following reproduces the buildable product behavior, but is **not** a
+clean-checkout release gate because WXT must first generate `.wxt/tsconfig.json`:
 
 ```sh
-npm install
-npm run check
+npm ci
+npm run build
+npx tsc --noEmit
+npm test
+xvfb-run -a env EXTENSION_HEADED=1 npm run test:a11y
 ```
 
 `npm run build` (and `npm run build:site`) creates:
@@ -41,7 +45,8 @@ npm run check
 - `dist/site/downloads/passkey-extension-check-chrome.zip`
 - `dist/extension/` (unpacked MV3 build)
 
-Verification completed on 2026-08-27:
+Verification was refreshed on 2026-08-28; see `verification-2.md` for the
+authoritative failing clean-checkout result. After the build prerequisite:
 
 - `npm test`: 10 tests passed across provider matching, conflict rules, managed-policy handling, export, and static-page contracts.
 - `npx tsc --noEmit`: passed with strict TypeScript.
