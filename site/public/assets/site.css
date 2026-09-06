@@ -129,7 +129,6 @@ footer a { display: inline-flex; min-height: 44px; align-items: center; text-und
 @media (max-width: 850px) {
   .nav-links > a:not(.nav-download) { display: none; }
   .hero { grid-template-columns: 1fr; gap: 44px; padding-top: 56px; }
-  .hero-art { grid-row: 1; }
   .proof-strip { grid-template-columns: 1fr 1fr; }
   .proof-strip p:nth-child(2) { border-right: 0; }
   .problem, .sample, .privacy-section, .install, .demo-columns, .demo-actions { grid-template-columns: 1fr; gap: 36px; }

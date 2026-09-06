@@ -29,6 +29,8 @@ try {
     page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
     page.on('pageerror', (error) => errors.push(error.message));
     await page.goto('http://127.0.0.1:4173/', { waitUntil: 'networkidle' });
+    const primaryAction = await page.getByRole('link', { name: /Try it with sample data/ }).boundingBox();
+    if (!primaryAction || primaryAction.y >= viewport.height) throw new Error(`Primary demo action is below the first screen at ${viewport.width}px`);
     await page.keyboard.press('Tab');
     if (!(await page.locator('.skip-link').evaluate((element) => document.activeElement === element))) throw new Error('Skip link is not first in keyboard order');
     await page.keyboard.press('Enter');
