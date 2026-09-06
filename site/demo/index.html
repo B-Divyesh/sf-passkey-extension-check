@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Try a populated passkey-extension conflict report without changing your extension data." />
+    <meta name="theme-color" content="#f4ebdd" />
+    <title>Demo — Passkey Extension Check</title>
+    <link rel="canonical" href="https://passkey-extension-check.sociobot.in/demo/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Demo — Passkey Extension Check" />
+    <meta property="og:description" content="Try a populated passkey-extension conflict report without changing your extension data." />
+    <meta property="og:url" content="https://passkey-extension-check.sociobot.in/demo/" />
+    <meta property="og:image" content="https://passkey-extension-check.sociobot.in/assets/social-preview.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Demo — Passkey Extension Check" />
+    <meta name="twitter:description" content="Try a populated passkey-extension conflict report without changing your extension data." />
+    <meta name="twitter:image" content="https://passkey-extension-check.sociobot.in/assets/social-preview.jpg" />
+    <link rel="stylesheet" href="/assets/site.css?v=20260906-1" />
+    <link rel="icon" href="/assets/icon.svg" />
+    <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to sample report</a>
+    <header class="nav-shell">
+      <nav aria-label="Primary navigation">
+        <a class="brand" href="/"><img src="/assets/icon.svg" width="36" height="36" alt="" /><span>Passkey Extension Check</span></a>
+        <div class="nav-links"><a aria-current="page" href="/demo/">Demo</a><a href="/#how">How it works</a><a href="/privacy/">Privacy</a><a class="nav-download" href="/downloads/passkey-extension-check-chrome.zip" download>Download</a></div>
+      </nav>
+    </header>
+    <main id="main" class="demo-main">
+      <aside class="demo-banner" aria-label="Demo status">
+        <strong>Demo — sample data, nothing is saved</strong>
+        <span>This report uses a separate browser-storage key.</span>
+        <div><button class="secondary" id="reset-demo" type="button">Reset demo</button><a class="text-link" href="/#install">Start for real</a></div>
+      </aside>
+      <section class="demo-intro" aria-labelledby="demo-title">
+        <p class="eyebrow">Sample report</p>
+        <h1 id="demo-title" tabindex="-1">Review a sample passkey conflict.</h1>
+        <p class="lede">This sample shows two enabled providers and a recovery route in a managed work profile.</p>
+      </section>
+      <section class="demo-report" aria-labelledby="result-title">
+        <div class="demo-result" data-status="conflict">
+          <span aria-hidden="true">!</span>
+          <div><p class="eyebrow">Readiness result</p><h2 id="result-title">Provider overlap found</h2><p id="result-summary">Resolve the overlap and verify a recovery route before changing a critical login.</p></div>
+        </div>
+        <div class="demo-columns">
+          <section aria-labelledby="providers-title"><p class="eyebrow">Included providers</p><h2 id="providers-title">Two providers are enabled.</h2><ul class="demo-list"><li><strong>1Password</strong><span>Enabled · organization-managed</span></li><li><strong>Bitwarden</strong><span>Enabled · manually confirmed</span></li></ul></section>
+          <section aria-labelledby="capability-title"><p class="eyebrow">Browser check</p><h2 id="capability-title">Built-in authenticator available.</h2><p>The sample reports capability only. It does not start a sign-in or create a credential.</p></section>
+        </div>
+        <section class="demo-actions" aria-labelledby="sample-plan-title">
+          <div><p class="eyebrow">Recovery plan</p><h2 id="sample-plan-title">Keep an independent route back in.</h2></div>
+          <ol id="demo-checklist"></ol>
+        </section>
+      </section>
+      <p class="demo-status" id="demo-status" aria-live="polite"></p>
+    </main>
+    <footer>
+      <div><a class="brand" href="/"><img src="/assets/icon.svg" width="32" height="32" alt="" /><span>Passkey Extension Check</span></a><p>A local passkey-provider and recovery check.</p></div>
+      <nav aria-label="Footer navigation"><a href="/demo/">Demo</a><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="https://github.com/B-Divyesh/sf-passkey-extension-check" rel="noreferrer">Source</a></nav>
+      <p class="generated-note">Built by Param Factory · v1.1.0 · Hero artwork was generated for this project.</p>
+    </footer>
+    <script type="module" src="./main.ts"></script>
+    <script type="module" src="/assets/site.js?v=20260906-1"></script>
+  </body>
+</html>

@@ -32,5 +32,10 @@
         "Cache-Control": "public, max-age=0, must-revalidate"
       }
     }
-  ]
+  ],
+  "responseOverrides": {
+    "404": {
+      "rewrite": "/404.html"
+    }
+  }
 }

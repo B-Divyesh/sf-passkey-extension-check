@@ -4,7 +4,7 @@ export default defineConfig({
   manifest: {
     name: 'Passkey Extension Check',
     description: 'Check passkey-provider coexistence and prepare a recovery route before a critical login.',
-    version: '1.0.0',
+    version: '1.1.0',
     permissions: ['storage'],
     optional_permissions: ['management'],
     action: {

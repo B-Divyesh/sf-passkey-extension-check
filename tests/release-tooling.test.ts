@@ -5,6 +5,7 @@ const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as { script
 const staticConfig = JSON.parse(readFileSync('site/public/staticwebapp.config.json', 'utf8')) as {
   globalHeaders: Record<string, string>;
   routes: Array<{ route: string; headers: Record<string, string> }>;
+  responseOverrides: Record<string, { rewrite: string }>;
 };
 
 describe('release tooling contracts', () => {
@@ -29,5 +30,6 @@ describe('release tooling contracts', () => {
     expect(staticConfig.routes).toContainEqual({ route: '/assets/passkey-diorama-720.webp', headers: { 'Cache-Control': 'public, max-age=31536000, immutable' } });
     expect(staticConfig.routes).toContainEqual({ route: '/assets/passkey-diorama-1280.webp', headers: { 'Cache-Control': 'public, max-age=31536000, immutable' } });
     expect(staticConfig.routes).toContainEqual({ route: '/sw.js', headers: { 'Cache-Control': 'public, max-age=0, must-revalidate' } });
+    expect(staticConfig.responseOverrides['404']).toEqual({ rewrite: '/404.html' });
   });
 });

@@ -1,10 +1,18 @@
 # Passkey Extension Check
 
-Passkey Extension Check is a free, local-first browser extension for people who use password managers across browsers—or have organization-managed extensions—and want to spot passkey-provider overlap before changing a critical login.
+Passkey Extension Check is a Chromium browser extension for people using
+password-manager extensions who need to find a provider overlap and make a
+recovery plan before changing a critical login.
 
-It inventories known password/passkey provider extensions with an optional browser permission, provides a manual fallback when the browser cannot expose them, checks non-secret WebAuthn capability, and creates an exportable recovery checklist. It never reads credentials, passkeys, page contents, or form values, and it does not attempt a real authentication ceremony.
+It checks known provider metadata when you allow it, supports manual provider
+confirmation, reports non-secret WebAuthn capability, and exports a local
+recovery checklist. It is a readiness aid, not proof that a real account
+sign-in will work.
 
-Live site: <https://passkey-extension-check.sociobot.in>
+Try the seeded sample at
+https://passkey-extension-check.sociobot.in/demo/. The sample starts with a
+realistic overlap report. It uses only its demo storage key. See
+[.factory/demo.md](.factory/demo.md) for its fixture and reset behavior.
 
 ## Run locally
 
@@ -12,64 +20,49 @@ Requirements: Node.js 22+ and npm.
 
 ```sh
 npm ci
-npm run dev       # WXT development extension
-npm run dev:site  # landing site
+npm run dev       # develop the extension
+npm run dev:site  # develop the static site
 ```
 
-`npm ci` runs WXT's local type preparation automatically. No generated `.wxt/`
-files are committed.
+To load the extension locally, run `npm run build:extension`, open
+`chrome://extensions`, enable Developer mode, and load
+`.output/chrome-mv3`.
 
-To test an unpacked development build:
-
-1. Run `npm run build:extension`.
-2. Open `chrome://extensions`, enable Developer mode, and choose **Load unpacked**.
-3. Select `.output/chrome-mv3`, then click the extension toolbar icon.
-
-## Test and build
+## Verify and build
 
 ```sh
-npm test          # rule-engine and HTML contract tests
-npm run check     # typecheck, tests, extension + site build
-npm run build     # reproducible release output in dist/
-npm run test:a11y # browser accessibility/runtime smoke test
+npm ci
+npm run check       # clean gate, build, browser a11y, and every public claim
+npm run build       # writes the deployable site and extension package to dist/
+npm run test:claims # builds and runs every declared public-claim check
 ```
 
-The browser smoke test is pinned to Playwright 1.58.2, which uses Chromium
-1208 supplied by the factory image. Run the extension portion with a display
-server when validating MV3 pages:
+`npm run test:a11y` runs desktop and phone site checks plus the headed MV3
+extension flow under Xvfb. Playwright is pinned to the factory Chromium
+revision. Each visitor-facing promise is listed in
+[.factory/claims.json](.factory/claims.json) with a runnable sandbox command.
 
-```sh
-xvfb-run -a env EXTENSION_HEADED=1 npm run test:a11y
-```
+## Deploy
 
-Release output:
+Deploy `dist/site/` as the static site. It includes the product 404 page,
+security headers, sitemap, social metadata, service worker, and
+`downloads/passkey-extension-check-chrome.zip`. The package is the
+unpacked-development build for Chromium. The factory owns deployment; this
+repository does not manage domains or infrastructure.
 
-- `dist/extension/` — unpacked Chromium MV3 extension.
-- `dist/site/` — deployable static site (with `index.html` at its root).
-- `dist/site/downloads/passkey-extension-check-chrome.zip` — packaged extension linked by the site.
+## Privacy and limits
 
-`npm run build:site` and `npm run build` both produce the complete static deployment, including the packaged download.
-The site output also includes `staticwebapp.config.json` for Azure Static Web
-Apps: a same-origin CSP, explicit permissions/frame policy, short HTML and
-service-worker revalidation, and immutable caching for versioned script and
-hero-image assets.
+The extension runs without an account. It has no content scripts and asks for
+only local storage plus optional extension-management metadata. It does not
+request access to passwords, passkeys, pages, or form values. It keeps matched
+provider findings in browser-local extension storage, discards unrelated raw
+inventory, and creates reports on the device.
 
-## How detection works
+Browser APIs cannot enumerate every operating-system or built-in credential
+provider. Keep an existing session and a tested independent recovery route.
+For organization-managed providers, contact IT rather than attempting to
+remove policy-installed software.
 
-The optional `management` permission exposes installed extension metadata. The extension matches known providers locally, retains only matches, and discards the raw list. If access is declined or unsupported, the same workflow continues with explicit provider checkboxes. Browser and operating-system credential providers are not always enumerable, so the report labels this limitation instead of promising safety.
-
-Recovery selections and the last check are stored only in extension-local storage and can be cleared from the results screen. Exported reports are plain text generated in the browser.
-
-## Project structure
-
-- `entrypoints/` — WXT background and options-page application.
-- `src/domain.ts` — provider matching, readiness rules, and report generation.
-- `site/` — static product, privacy, and terms pages.
-- `tests/` — deterministic rule and accessibility-contract tests.
-- `.factory/design.md` — product-specific visual system and asset provenance.
-
-## Scope and safety
-
-This is a readiness aid, not a security guarantee. Test changes on a non-critical account, keep an existing session open, and maintain an independent recovery method. Organization-managed extensions should be handled with IT rather than bypassed.
-
-Licensed under the [MIT License](LICENSE).
+Read the [privacy policy](https://passkey-extension-check.sociobot.in/privacy/)
+and [terms](https://passkey-extension-check.sociobot.in/terms/). Licensed under
+the [MIT License](LICENSE).

@@ -39,16 +39,39 @@ try {
     if (serious.length || errors.length || overflow) throw new Error(JSON.stringify({ viewport, serious, errors, overflow }, null, 2));
     await pageContext.close();
   }
-  for (const path of ['/privacy/', '/terms/']) {
+  const routes = [
+    { path: '/privacy/', title: 'Privacy — Passkey Extension Check' },
+    { path: '/terms/', title: 'Terms — Passkey Extension Check' },
+    { path: '/demo/', title: 'Demo — Passkey Extension Check' },
+    { path: '/404.html', title: 'Page not found — Passkey Extension Check' },
+  ];
+  for (const { path, title } of routes) {
     const pageContext = await browser.newContext({ viewport: { width: 390, height: 844 } });
     const page = await pageContext.newPage();
-    await page.goto(`http://127.0.0.1:4173${path}`, { waitUntil: 'networkidle' });
+    await page.goto('http://127.0.0.1:4173' + path, { waitUntil: 'networkidle' });
     const axe = await new AxeBuilder({ page }).analyze();
     const serious = axe.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact ?? ''));
-    if (serious.length) throw new Error(`${path}: ${JSON.stringify(serious, null, 2)}`);
+    const metadata = await page.evaluate(() => ({
+      lang: document.documentElement.lang,
+      title: document.title,
+      h1: document.querySelectorAll('h1').length,
+      main: Boolean(document.querySelector('main')),
+      canonical: document.querySelector('link[rel="canonical"]')?.getAttribute('href'),
+      og: document.querySelector('meta[property="og:image"]')?.getAttribute('content'),
+      twitter: document.querySelector('meta[name="twitter:card"]')?.getAttribute('content'),
+      apple: document.querySelector('link[rel="apple-touch-icon"]')?.getAttribute('href'),
+    }));
+    if (serious.length || metadata.lang !== 'en' || metadata.title !== title || metadata.h1 !== 1 || !metadata.main || !metadata.canonical || !metadata.og || metadata.twitter !== 'summary_large_image' || !metadata.apple) {
+      throw new Error(path + ': ' + JSON.stringify({ serious, metadata }, null, 2));
+    }
+    if (path === '/demo/') {
+      if (!(await page.locator('.demo-banner').textContent())?.includes('Demo — sample data, nothing is saved')) throw new Error('Demo banner is missing its persistent storage boundary');
+      if ((await page.locator('#result-title').textContent()) !== 'Provider overlap found') throw new Error('Demo did not show a populated sample result');
+    }
+    if (path === '/404.html' && !(await page.getByRole('link', { name: 'Go to the passkey check' }).count())) throw new Error('404 page has no way back');
     await pageContext.close();
   }
-  console.log('Site: no serious/critical axe violations, console errors, or 390px overflow.');
+  console.log('Site: desktop and phone smoke, route metadata, demo sandbox, and styled 404 are clean.');
 
   const profile = await mkdtemp(join(tmpdir(), 'passkey-check-'));
   const context = await chromium.launchPersistentContext(profile, {

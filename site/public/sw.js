@@ -1,5 +1,5 @@
-const CACHE = 'passkey-check-v2';
-const SHELL = ['/', '/assets/site.css?v=20260828-1', '/assets/icon.svg', '/assets/passkey-diorama-720.webp?v=20260828-1'];
+const CACHE = 'passkey-check-v3';
+const SHELL = ['/', '/demo/', '/assets/site.css?v=20260906-1', '/assets/icon.svg', '/assets/passkey-diorama-720.webp?v=20260828-1'];
 self.addEventListener('install', (event) => event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL))));
 self.addEventListener('activate', (event) => event.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((key) => key !== CACHE).map((key) => caches.delete(key))))));
 self.addEventListener('fetch', (event) => {
